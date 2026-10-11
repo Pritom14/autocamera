@@ -24,6 +24,7 @@ import java.io.IOException;
 
 public class MainActivity extends Activity {
 
+    private static final String TAG = "MainActivity";
     private static final String APP_FOLDER = "/AutoCamera";
     private static final int PERMISSIONS_REQUEST_CODE = 12;
 
@@ -57,6 +58,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_main);
 
         surface = findViewById(R.id.surfaceView);
@@ -75,6 +77,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 if (!(useCamera && extStorage)) {
+                    Log.d(TAG, "Lapse toggle ignored: permissions not granted");
                     Toast.makeText(getApplicationContext(),
                             "Have you enabled the appropriate permissions yet?",
                             Toast.LENGTH_LONG).show();
@@ -84,6 +87,7 @@ public class MainActivity extends Activity {
 
                 final long delay = Long.valueOf(lapseText.getText().toString());
                 isLapsing = !isLapsing;
+                Log.d(TAG, "Lapse toggled: isLapsing=" + isLapsing + ", delay=" + delay);
 
                 if (isLapsing) {
                     // Set up threading
@@ -116,19 +120,23 @@ public class MainActivity extends Activity {
             File img = new File(dir, prefix + number + ".jpg");
 
             try {
+                Log.d(TAG, "Saving picture to " + img.getAbsolutePath());
                 FileOutputStream of = new FileOutputStream(img);
                 of.write(bytes);
                 of.close();
             } catch (FileNotFoundException e) {
+                Log.e(TAG, "Could not open output file " + img.getAbsolutePath(), e);
                 e.printStackTrace();
             } catch (IOException e) {
                 // TODO Do something about this exception
+                Log.e(TAG, "Could not write picture", e);
                 e.printStackTrace();
             }
         }
     }
 
     private void setPermissions() {
+        Log.d(TAG, "Requesting camera and storage permissions");
         ActivityCompat.requestPermissions(
                 this,
                 new String[] {
@@ -145,9 +153,11 @@ public class MainActivity extends Activity {
             case PERMISSIONS_REQUEST_CODE:
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(TAG, "Permissions granted");
                     useCamera = true;
                     extStorage = true;
                 } else {
+                    Log.e(TAG, "Permissions denied");
                     Toast.makeText(
                             getApplicationContext(),
                             "Cannot use permissions.",
